@@ -5,13 +5,13 @@ import re
 import statistics
 from datetime import datetime, timedelta, timezone
 
-url_Sales = 'https://finance.yahoo.com/quote/DELL/analysis'
-url_yahoo_Key_statistics = 'https://finance.yahoo.com/quote/DELL/key-statistics'
-url_cnbc_for_Debt = 'https://apps.cnbc.com/view.asp?symbol=DELL.O&uid=stocks/stockvsPeers&view=keyMeasures'
-url_wallmine_incomestatement = 'https://wallmine.com/NASDAQ/DELL/historical-statement-values.json?statement_kind=income_statements'
-url_ycharts_PERatio = 'https://ycharts.com/charts/fund_data.json?calcs=id%3Ape_ratio%2Cinclude%3Atrue%2C%2C&chartId=&chartType=interactive&correlations=&customGrowthAmount=&dataInLegend=value&dateSelection=range&displayDateRange=false&endDate=&format=real&legendOnChart=false&lineAnnotations=&nameInLegend=name_and_ticker&note=&partner=basic_2000&quoteLegend=false&recessions=false&scaleType=linear&securities=id%3ADELL%2Cinclude%3Atrue%2C%2C&securityGroup=&securitylistName=&securitylistSecurityId=&source=false&splitType=single&startDate=&title=&units=false&useCustomColors=false&useEstimates=false&zoom=1&hideValueFlags=false&redesign=true&chartAnnotations=&axisExtremes=&maxPoints=681&chartCreator=false'
-url_AlphaVantage_CompanyOverview = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol=DELL&apikey=3X4SXZL8VFMG6W45'
-url_Alphavanatge_CompranyStockPrice = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=DELL&apikey=3X4SXZL8VFMG6W45'
+url_Sales = 'https://finance.yahoo.com/quote/GOOGL/analysis'
+url_yahoo_Key_statistics = 'https://finance.yahoo.com/quote/GOOGL/key-statistics'
+url_cnbc_for_Debt = 'https://apps.cnbc.com/view.asp?symbol=GOOGL.O&uid=stocks/stockvsPeers&view=keyMeasures'
+url_wallmine_incomestatement = 'https://wallmine.com/NASDAQ/GOOGL/historical-statement-values.json?statement_kind=income_statements'
+url_ycharts_PERatio = 'https://ycharts.com/charts/fund_data.json?calcs=id%3Ape_ratio%2Cinclude%3Atrue%2C%2C&chartId=&chartType=interactive&correlations=&customGrowthAmount=&dataInLegend=value&dateSelection=range&displayDateRange=false&endDate=&format=real&legendOnChart=false&lineAnnotations=&nameInLegend=name_and_ticker&note=&partner=basic_2000&quoteLegend=false&recessions=false&scaleType=linear&securities=id%3AGOOGL%2Cinclude%3Atrue%2C%2C&securityGroup=&securitylistName=&securitylistSecurityId=&source=false&splitType=single&startDate=&title=&units=false&useCustomColors=false&useEstimates=false&zoom=1&hideValueFlags=false&redesign=true&chartAnnotations=&axisExtremes=&maxPoints=681&chartCreator=false'
+url_AlphaVantage_CompanyOverview = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol=GOOGL&apikey=3X4SXZL8VFMG6W45'
+url_Alphavanatge_CompranyStockPrice = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=GOOGL&apikey=3X4SXZL8VFMG6W45'
 
 def SalesGrowth():
     try:
@@ -143,9 +143,7 @@ def avg_ProfitMargin_Last4Years():
         response_text = response.text
         json_data = json.loads(response_text)
         #Number of years is 1 from most recent year to 4 latest.
-        net_Income_wallmine = float(json_data["annual"][i]["net_income"])
-        total_revenue_wallmine =float(json_data["annual"][i]["total_revenue"])
-        profitMargin_Per_Year = [(net_Income_wallmine/total_revenue_wallmine)*100 for i in range(4) ]
+        profitMargin_Per_Year = [(float(json_data["annual"][i]["net_income"])/float(json_data["annual"][i]["total_revenue"]))*100 for i in range(4) ]
         standard_deviation = statistics.stdev(profitMargin_Per_Year)
         avg_ProfitMargin = statistics.mean(profitMargin_Per_Year)
         return avg_ProfitMargin
