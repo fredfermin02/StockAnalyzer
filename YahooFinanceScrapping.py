@@ -5,13 +5,13 @@ import re
 import statistics
 from datetime import datetime, timedelta, timezone
 
-url_Sales = 'https://finance.yahoo.com/quote/AAPL/analysis'
-url_yahoo_Key_statistics = 'https://finance.yahoo.com/quote/AAPL/key-statistics'
-url_cnbc_for_Debt = 'https://apps.cnbc.com/view.asp?symbol=AAPL.O&uid=stocks/stockvsPeers&view=keyMeasures'
-url_wallmine_incomestatement = 'https://wallmine.com/NASDAQ/AAPL/historical-statement-values.json?statement_kind=income_statements'
-url_ycharts_PERatio = 'https://ycharts.com/charts/fund_data.json?calcs=id%3Ape_ratio%2Cinclude%3Atrue%2C%2C&chartId=&chartType=interactive&correlations=&customGrowthAmount=&dataInLegend=value&dateSelection=range&displayDateRange=false&endDate=&format=real&legendOnChart=false&lineAnnotations=&nameInLegend=name_and_ticker&note=&partner=basic_2000&quoteLegend=false&recessions=false&scaleType=linear&securities=id%3AAAPL%2Cinclude%3Atrue%2C%2C&securityGroup=&securitylistName=&securitylistSecurityId=&source=false&splitType=single&startDate=&title=&units=false&useCustomColors=false&useEstimates=false&zoom=1&hideValueFlags=false&redesign=true&chartAnnotations=&axisExtremes=&maxPoints=681&chartCreator=false'
-url_AlphaVantage_CompanyOverview = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=3X4SXZL8VFMG6W45'
-url_Alphavanatge_CompranyStockPrice = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=3X4SXZL8VFMG6W45'
+url_Sales = 'https://finance.yahoo.com/quote/NVDA/analysis'
+url_yahoo_Key_statistics = 'https://finance.yahoo.com/quote/NVDA/key-statistics'
+url_cnbc_for_Debt = 'https://apps.cnbc.com/view.asp?symbol=NVDA.O&uid=stocks/stockvsPeers&view=keyMeasures'
+url_wallmine_incomestatement = 'https://wallmine.com/NASDAQ/NVDA/historical-statement-values.json?statement_kind=income_statements'
+url_ycharts_PERatio = 'https://ycharts.com/charts/fund_data.json?calcs=id%3Ape_ratio%2Cinclude%3Atrue%2C%2C&chartId=&chartType=interactive&correlations=&customGrowthAmount=&dataInLegend=value&dateSelection=range&displayDateRange=false&endDate=&format=real&legendOnChart=false&lineAnnotations=&nameInLegend=name_and_ticker&note=&partner=basic_2000&quoteLegend=false&recessions=false&scaleType=linear&securities=id%3ANVDA%2Cinclude%3Atrue%2C%2C&securityGroup=&securitylistName=&securitylistSecurityId=&source=false&splitType=single&startDate=&title=&units=false&useCustomColors=false&useEstimates=false&zoom=1&hideValueFlags=false&redesign=true&chartAnnotations=&axisExtremes=&maxPoints=681&chartCreator=false'
+url_AlphaVantage_CompanyOverview = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol=NVDA&apikey=3X4SXZL8VFMG6W45'
+url_Alphavanatge_CompranyStockPrice = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=NVDA&apikey=3X4SXZL8VFMG6W45'
 
 def Sales_Growth():
     try:
@@ -30,6 +30,7 @@ def Sales_Growth():
         find_elements_in_table = sales_growth_table.find_all('tr')[1]
         # Extract the text from the last <td> element
         nextYear_Sales_Growth = find_elements_in_table.find_all('td')[3].get_text()
+        print("sales growth: " +str(add_format_for_yahooValues(nextYear_Sales_Growth)))
         return add_format_for_yahooValues(nextYear_Sales_Growth)
 
     except (requests.RequestException, IndexError, AttributeError) as e:
@@ -55,6 +56,7 @@ def market_Cap():
         response.raise_for_status()  # Check if the request was successful
         data = response.json()
         mrkCap = data.get("MarketCapitalization")
+        print("market cap:" + mrkCap)
         return int(mrkCap)
     except Exception as e:
         print(f"Error in marketCap function: {e}")
@@ -67,7 +69,7 @@ def Cash_of_company():
         soup = BeautifulSoup(page.text, features="html.parser")
         total_cash_row = soup.find('td', string='Total Cash  (mrq)').find_next_sibling('td', class_='value')
         total_cash_value = total_cash_row.get_text()
-        
+        print("total cash value: "+total_cash_value)
         return total_cash_value
     
     except (requests.RequestException, AttributeError) as e:
@@ -177,15 +179,15 @@ def get_EpochTime_OfFirstDay_Last_6_Month():
         print(f"An error occurred in get_EpochTime_OfFirstDay_Last_6_Month: {e}")
         return None
     
-def avg_PERatio_Last_6_Month(get_epoch_times):
+def avg_PERatio_Last_6_Month():
     try:
         response = requests.get(url_ycharts_PERatio,headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0'})
         response_text = response.text
         json_data = json.loads(response_text)
 
         chart_data = json_data["chart_data"][0][0]["raw_data"]
-        epoch_Times = get_epoch_times
-
+        epoch_Times = get_EpochTime_OfFirstDay_Last_6_Month()
+        print(epoch_Times)
         pe_Ratios = []
         chart_data_pointer = len(chart_data)
         for time in epoch_Times:
@@ -194,53 +196,41 @@ def avg_PERatio_Last_6_Month(get_epoch_times):
                     pe_Ratios.append(chart_data[i][1])
                     chart_data_pointer = i - 10
                     break
+        print("avg pe ratio: "+ str(statistics.mean(pe_Ratios)))
         return statistics.mean(pe_Ratios)
     
     except (requests.RequestException, KeyError, IndexError) as e:
         print(f"An error occurred in avg_PERatio_Last_6_Month: {e}")
         return None
     
-def discover_profit_for_year(salesGrowth, avg_ProfitMargin):
+def discover_profit_for_year( ):
+    print("discover :" + str(Sales_Growth()*(avg_ProfitMargin_Last4Years()/100)) )
+    return Sales_Growth()*(avg_ProfitMargin_Last4Years()/100)
 
-    return salesGrowth*(avg_ProfitMargin/100)
+def future_market_cap():
+    print("future market cap: " + str(discover_profit_for_year() * avg_PERatio_Last_6_Month()))
+    return discover_profit_for_year() * avg_PERatio_Last_6_Month()
 
-def future_market_cap(discover_profit_for_year,avg_PERatio_Last_6_Month):
-
-    return discover_profit_for_year * avg_PERatio_Last_6_Month
-
-def possible_return(future_market_cap, marketCap ):
+def possible_return( ):
     # print(future_market_cap()/marketCap())
     
+    try:
+        todays_date = datetime.now()
+        if todays_date.weekday() == 5:
+            todays_date = todays_date.replace(day=todays_date.day-1)
+        elif todays_date.weekday() == 6:
+            todays_date = todays_date.replace(day=todays_date.day-2)
+        
+        response = requests.get(url_Alphavanatge_CompranyStockPrice)
+        data = json.loads(response.text)
+        closing_price = data['Time Series (Daily)'][str(todays_date.date())]['4. close']
+        print(future_market_cap()/market_Cap())
+        possbile_return = (future_market_cap()/market_Cap()) * float(closing_price)
 
-    todays_date = datetime.now()
-    if todays_date.weekday() == 5:
-        todays_date = todays_date.replace(day=todays_date.day-1)
-    elif todays_date.weekday() == 6:
-        todays_date = todays_date.replace(day=todays_date.day-2)
-    
-    response = requests.get(url_Alphavanatge_CompranyStockPrice)
-    data = json.loads(response.text)
-    closing_price = data['Time Series (Daily)'][str(todays_date.date())]['4. close']
-    
-    possbile_return = (future_market_cap/marketCap) * float(closing_price)
+        return possbile_return
+    except (requests.RequestException, KeyError, IndexError) as e:
+        print(f"An error occurred in possible return: {e}")
+        return None
 
-    return possbile_return
-
-def run_functions_sequentially():
-
-    SaleGrowth = Sales_Growth()
-    marketCap = market_Cap()
-    # CashOfCompany = Cash_of_company()
-    # totalDebtToCapital = total_debt_to_capital()
-    # operatingExpensesOfCompany = operatingExpenses_of_company()
-    avgProfitMargin_Last4Years = avg_ProfitMargin_Last4Years()
-    EpochTimeOfFirstDay_Last6Month = get_EpochTime_OfFirstDay_Last_6_Month()
-    avgPERatio_Last6Month = avg_PERatio_Last_6_Month(EpochTimeOfFirstDay_Last6Month)
-    discoverProfitForYear = discover_profit_for_year(SaleGrowth, avgProfitMargin_Last4Years)
-    futureMarketCap = future_market_cap(discoverProfitForYear, avgPERatio_Last6Month)
-    possibleReturn = possible_return(futureMarketCap, marketCap)
-    print(possibleReturn)
-
-
-run_functions_sequentially()
+print(possible_return())
 print("Done")
