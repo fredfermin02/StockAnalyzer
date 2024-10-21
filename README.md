@@ -29,5 +29,4 @@ You need to install the required Python packages before running the script. Use 
 ```bash
 pip install beautifulsoup4 requests statistics
 
-Error handling is incorporated into each function to manage potential issues such as:
 
